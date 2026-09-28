@@ -1,0 +1,221 @@
+\begin{thebibliography}{31}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Bai et~al.(2026)Bai, Li, Xu, Lam, and Peng]{erfgs}
+Xiaoyang Bai, Zhenyang Li, Weiwei Xu, Edmund~Y. Lam, and Yifan Peng.
+\newblock {ERF-GS}: Reconstructing fast motion from disjoint event-{RGB}
+  viewpoints.
+\newblock \emph{arXiv preprint arXiv:2608.08531}, 2026.
+
+\bibitem[Barron et~al.(1994)Barron, Fleet, and Beauchemin]{barron1994aperture}
+John~L. Barron, David~J. Fleet, and Steven~S. Beauchemin.
+\newblock Performance of optical flow techniques.
+\newblock \emph{International Journal of Computer Vision}, 12\penalty0
+  (1):\penalty0 43--77, 1994.
+
+\bibitem[Chen et~al.(2026)Chen, Zhang, others, and Xie]{evtrajgs}
+Zixuan Chen, Jiakai Zhang, others, and Xiaohua Xie.
+\newblock {EvTrajGS}: Accurate and efficient {3D} {Gaussian} splatting from
+  unposed event streams.
+\newblock In \emph{arXiv preprint arXiv:2608.}, 2026.
+
+\bibitem[Dai et~al.(2026)Dai, Messikommer, Zou, Zubic, Scaramuzza, and
+  Kneip]{fasteventdgs}
+Zijia Dai, Nico Messikommer, Rong Zou, Nikola Zubic, Davide Scaramuzza, and
+  Laurent Kneip.
+\newblock {FastEventDGS}: Deformable {Gaussian} splatting for fast dynamic
+  scenes from a single event camera.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition (CVPR)}, 2026.
+
+\bibitem[Deguchi et~al.(2024)Deguchi, Masuda, Nakabayashi, and Saito]{e2gs}
+Hiroyuki Deguchi, Mana Masuda, Takuya Nakabayashi, and Hideo Saito.
+\newblock {E2GS}: Event enhanced gaussian splatting.
+\newblock In \emph{IEEE International Conference on Image Processing (ICIP)},
+  2024.
+
+\bibitem[Gallego et~al.(2018)Gallego, Rebecq, and
+  Scaramuzza]{gallego2018contrast}
+Guillermo Gallego, Henri Rebecq, and Davide Scaramuzza.
+\newblock A unifying contrast maximimization framework for event cameras, with
+  applications to motion, depth, and optical flow estimation.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition (CVPR)}, 2018.
+
+\bibitem[Gallego et~al.(2020)Gallego, Delbr{\"u}ck, Orchard, Bartolozzi, Taba,
+  Censi, Leutenegger, Davison, Conradt, Daniilidis, and
+  Scaramuzza]{gallego2020event}
+Guillermo Gallego, Tobi Delbr{\"u}ck, Garrick Orchard, Chiara Bartolozzi, Brian
+  Taba, Andrea Censi, Stefan Leutenegger, Andrew~J Davison, J{\"o}rg Conradt,
+  Kostas Daniilidis, and Davide Scaramuzza.
+\newblock Event-based vision: A survey.
+\newblock \emph{IEEE Transactions on Pattern Analysis and Machine
+  Intelligence}, 42\penalty0 (1):\penalty0 154--180, 2020.
+
+\bibitem[Han et~al.(2024)Han, Li, Wei, and Ji]{event3dgs}
+Haiqian Han, Jianing Li, Henglu Wei, and Xiangyang Ji.
+\newblock {Event-3DGS}: Event-based {3D} reconstruction using {3D} gaussian
+  splatting.
+\newblock In \emph{Advances in Neural Information Processing Systems
+  (NeurIPS)}, 2024.
+
+\bibitem[Hu et~al.(2021)Hu, Liu, and Delbruck]{hu2021v2e}
+Yuhuang Hu, Shih-Chii Liu, and Tobi Delbruck.
+\newblock {v2e}: From video frames to realistic {DVS} events.
+\newblock In \emph{IEEE/CVF Conference on Computer Vision and Pattern
+  Recognition Workshops (CVPRW)}, 2021.
+
+\bibitem[Huang et~al.(2025)Huang, Dong, Chen, and Liu]{inceventgs}
+Jian Huang, Chengrui Dong, Xuanhua Chen, and Peidong Liu.
+\newblock {IncEventGS}: Pose-free gaussian splatting from a single event
+  camera.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition (CVPR)}, 2025.
+
+\bibitem[Kerbl et~al.(2023)Kerbl, Kopanas, Leimk{\"u}hler, and
+  Drettakis]{kerbl3Dgaussians}
+Bernhard Kerbl, Georgios Kopanas, Thomas Leimk{\"u}hler, and George Drettakis.
+\newblock 3d gaussian splatting for real-time radiance field rendering.
+\newblock \emph{ACM Transactions on Graphics}, 42\penalty0 (4), 2023.
+
+\bibitem[Lee and Lee(2025)]{dietgs}
+Seungjun Lee and Gim~Hee Lee.
+\newblock {DiET-GS}: Diffusion prior and event stream-assisted motion
+  deblurring {3D} gaussian splatting.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition (CVPR)}, 2025.
+
+\bibitem[Liao et~al.(2025)Liao, Zhai, Han, Wei, Ji, and Zha]{ef3dgs}
+Bohao Liao, Wei Zhai, Haiqian Han, Henglu Wei, Xiangyang Ji, and Zheng-Jun Zha.
+\newblock {EF-3DGS}: Event-aided free-trajectory {3D} gaussian splatting.
+\newblock \emph{arXiv preprint arXiv:2506.05148}, 2025.
+
+\bibitem[Liu et~al.(2024)Liu, Guan, Shang, Yu, and Kneip]{liu2024lopet}
+Zibin Liu, Banglei Guan, Yang Shang, Qifeng Yu, and Laurent Kneip.
+\newblock Line-based {6-DoF} object pose estimation and tracking with an event
+  camera.
+\newblock \emph{IEEE Transactions on Image Processing}, 33:\penalty0
+  4765--4780, 2024.
+
+\bibitem[Liu et~al.(2026)Liu, Liang, Guan, Shang, Yu, and
+  Zhao]{liu2026eventpose}
+Zibin Liu, Shunkun Liang, Banglei Guan, Yang Shang, Qifeng Yu, and Ji Zhao.
+\newblock A geometric framework for absolute pose and velocity estimation with
+  event cameras.
+\newblock \emph{arXiv preprint arXiv:2606}, 2026.
+
+\bibitem[Ma et~al.(2023)Ma, Paudel, Chhatkuli, and Van~Gool]{defnerfevent}
+Qi Ma, Danda Paudel, Ajad Chhatkuli, and Luc Van~Gool.
+\newblock Deformable neural radiance fields using {RGB} and event cameras.
+\newblock In \emph{Proceedings of the IEEE/CVF International Conference on
+  Computer Vision (ICCV)}, 2023.
+
+\bibitem[Rebecq et~al.(2018)Rebecq, Gehrig, and Scaramuzza]{rebecq2018esim}
+Henri Rebecq, Daniel Gehrig, and Davide Scaramuzza.
+\newblock {ESIM}: an open event camera simulator.
+\newblock In \emph{Conference on Robot Learning (CoRL)}, 2018.
+
+\bibitem[Rebecq et~al.(2019)Rebecq, Ranftl, Koltun, and
+  Scaramuzza]{rebecq2019e2vid}
+Henri Rebecq, Ren{\'e} Ranftl, Vladlen Koltun, and Davide Scaramuzza.
+\newblock High speed and high dynamic range video with an event camera.
+\newblock pages 1964--1980, 2019.
+
+\bibitem[Ren et~al.(2024)Ren, Liao, Kong, Li, Liu, Kneip, Gallego, and
+  Zhou]{ren2024evlinear}
+Zhongyang Ren, Bangyan Liao, Delei Kong, Jinghang Li, Peidong Liu, Laurent
+  Kneip, Guillermo Gallego, and Yi Zhou.
+\newblock Motion and structure from event-based normal flow.
+\newblock In \emph{European Conference on Computer Vision (ECCV)}, 2024.
+
+\bibitem[Rudnev et~al.(2023)Rudnev, Elgharib, Theobalt, and
+  Golyanik]{eventnerf}
+Viktor Rudnev, Mohamed Elgharib, Christian Theobalt, and Vladislav Golyanik.
+\newblock {EventNeRF}: Neural radiance fields from a single colour event
+  camera.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition (CVPR)}, 2023.
+
+\bibitem[Rudnev et~al.(2024)Rudnev, Fox, Elgharib, Theobalt, and
+  Golyanik]{dynamiceventnerf}
+Viktor Rudnev, Gereon Fox, Mohamed Elgharib, Christian Theobalt, and Vladislav
+  Golyanik.
+\newblock Dynamic {EventNeRF}: Reconstructing general dynamic scenes from
+  multi-view event cameras.
+\newblock \emph{arXiv preprint arXiv:2405.18606}, 2024.
+
+\bibitem[Wang et~al.(2024)Wang, He, Zhang, Sun, Sun, and Xu]{evggs}
+Jiaxu Wang, Junhao He, Ziyi Zhang, Mingyuan Sun, Jing-Kai Sun, and Renjing Xu.
+\newblock {EvGGS}: A collaborative learning framework for event-based
+  generalizable gaussian splatting.
+\newblock In \emph{International Conference on Machine Learning (ICML)}, 2024.
+
+\bibitem[Wang et~al.(2026)Wang, Yu, and Wang]{edmcgs}
+Yuzhong Wang, Xinxing Yu, and Wenmin Wang.
+\newblock {EdMCGS}: Event-driven {Markov} chain {Gaussian} splatting for
+  extreme-low-frame-rate dynamic scene reconstruction.
+\newblock \emph{Neurocomputing}, 2026.
+
+\bibitem[Wu et~al.(2024)Wu, Yi, Fang, Xie, Zhang, Wei, Liu, Tian, and
+  Wang]{wu20244dgs}
+Guanjun Wu, Fangjun Yi, Jiemin Fang, Lingxi Xie, Xiaopeng Zhang, Wei Wei, Wenyu
+  Liu, Qi Tian, and Xiaogang Wang.
+\newblock {4D} gaussian splatting for real-time dynamic scene rendering.
+\newblock In \emph{Proceedings of the IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition (CVPR)}, 2024.
+
+\bibitem[Wu et~al.(2025)Wu, Yan, Yi, Wang, and Liao]{streamsplat2025}
+Zike Wu, Qi Yan, Xuanyu Yi, Lele Wang, and Renjie Liao.
+\newblock Streamsplat: Towards online dynamic 3d reconstruction from
+  uncalibrated video streams.
+\newblock \emph{arXiv preprint arXiv:2506.08862}, 2025.
+
+\bibitem[Xiong et~al.(2025)Xiong, Wu, He, Fermuller, Aloimonos, Huang, and
+  Metzler]{xiong2025event3dgs}
+Tianyi Xiong, Jiayi Wu, Botao He, Cornelia Fermuller, Yiannis Aloimonos, Heng
+  Huang, and Christopher Metzler.
+\newblock {Event3DGS}: Event-based {3D} gaussian splatting for high-speed robot
+  egomotion.
+\newblock In \emph{Proceedings of The 8th Conference on Robot Learning (CoRL)},
+  2025.
+
+\bibitem[Xu et~al.(2025)Xu, Weng, Zhang, Xu, and Xiong]{eventboostdeform3dgs}
+Wenhao Xu, Wenming Weng, Yueyi Zhang, Ruikang Xu, and Zhiwei Xiong.
+\newblock Event-boosted deformable {3D} gaussians for dynamic scene
+  reconstruction.
+\newblock \emph{arXiv preprint arXiv:2503.08392}, 2025.
+
+\bibitem[Yang et~al.(2023)Yang, Gao, Zhou, Jiao, Zhang, and
+  Gong]{yang2023deformable3dgs}
+Ziyi Yang, Xinyu Gao, Wen Zhou, Shaohui Jiao, Yuqing Zhang, and Xiaogang Gong.
+\newblock Deformable {3D} gaussians for high-fidelity monocular dynamic scene
+  reconstruction.
+\newblock In \emph{Proceedings of the IEEE/CVF International Conference on
+  Computer Vision (ICCV)}, 2023.
+
+\bibitem[Ye et~al.(2024)Ye, Turkulainen, Li, others, and
+  Kanazawa]{ye2024gsplat}
+Vickie Ye, Matias Turkulainen, Ruilong Li, others, and Angjoo Kanazawa.
+\newblock {gsplat}: An open-source library for {Gaussian} splatting.
+\newblock 2024.
+\newblock \url{https://github.com/nerfstudio-project/gsplat}.
+
+\bibitem[Yuan et~al.(2026)Yuan, Kappler, Zhang, Chen, Morbidi, Vasseur,
+  Demonceaux, and Fraundorfer]{yuan2026p2p}
+Runze Yuan, Alexander Kappler, Jun Zhang, Kuangyi Chen, Fabio Morbidi, Pascal
+  Vasseur, C{\'e}dric Demonceaux, and Friedrich Fraundorfer.
+\newblock A height-constrained {2-Point} minimal solver for pose estimation
+  from active {LED} markers with event cameras.
+\newblock \emph{arXiv preprint arXiv:2608.09520}, 2026.
+
+\bibitem[Yura et~al.(2024)Yura, Mirzaei, and Gilitschenski]{eventsplat}
+Toshiya Yura, Ashkan Mirzaei, and Igor Gilitschenski.
+\newblock {EventSplat}: {3D} gaussian splatting from moving event cameras for
+  real-time rendering.
+\newblock \emph{arXiv preprint arXiv:2412.07293}, 2024.
+
+\end{thebibliography}

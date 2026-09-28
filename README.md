@@ -164,3 +164,47 @@ This project builds upon several excellent works:
 - [Nutworld](https://github.com/Nut-World/NutWorld) for orthographic rasterization
 - [edm](https://github.com/NVlabs/edm) for data augmentation
 
+## EventGS: Event + Video Datasets (TODO)
+
+The EventGS extension targets reconstruction from synchronized **event streams + video streams**. Below is the curated list of datasets that contain (or can generate) both modalities, with download status and notes. This serves as the working TODO list for dataset acquisition and benchmark construction.
+
+### Datasets with native synchronized events + frames
+
+| Dataset | Sensor | Events | Frames | GT Pose | Size | Format | Status |
+|---|---|---|---|---|---|---|---|
+| **MVSEC** [page](https://daniilidis-group.github.io/mvsec) | DAVIS-346 stereo (×2) | ✓ | APS grayscale | ✓ (LiDAR+MoCap) | 178 GB | ROS bag | ☐ Not downloaded (too large, needs ROS) |
+| **CED** [page](http://rpg.ifi.uzh.ch/CED) | Color-DAVIS346 | ✓ color | color APS | ✗ | ~10 GB | ROS bag | ☐ Not downloaded (rosbag, 403 on direct link) |
+| **EventNeRF** [page](https://4dqv.mpi-inf.mpg.de/EventNeRF/) | Color-DAVIS346 mono | ✓ color | color APS | ✓ (COLMAP) | per-scene | custom | ☐ Not downloaded (password-protected) |
+| **Dynamic EventNeRF** [page](https://4dqv.mpi-inf.mpg.de/EventNeRF/) | DAVIS-240 ×6 rig | ✓ | APS | ✓ (MoCap) | per-scene | custom | ☐ Not downloaded (multi-view rig) |
+| **EDAT24** [zenodo](https://zenodo.org/records/10688518) | DAVIS-240C | ✓ | APS @20fps | ✗ | 6.7 GB | aedat + npy | ☐ Not downloaded (assembly tasks, static scenes) |
+| **TUM-VIE** | Prophesee Gen4CD stereo (1280×720) | ✓ | grayscale global shutter | ✓ (MoCap) | large | ROS bag | ☐ Not downloaded (events-only, no APS on event sensor) |
+| **DSEC** [page](https://rpg.ifi.uzh.ch/dsec.html) | Prophesee stereo (640×480) | ✓ | grayscale frame stereo | ✓ (RTK-GPS) | ~50 GB | ROS bag | ☐ Not downloaded (driving, outdoor) |
+| **VECtor** | Prophesee stereo (640×480) | ✓ | RGB-D | ✓ (MoCap/ICP) | large | ROS bag | ☐ Not downloaded |
+| **M3ED** | Prophesee stereo (1280×720) | ✓ | RGB stereo | ✓ (Faster-LIO) | large | ROS bag | ☐ Not downloaded |
+| **SEVAR** [github](https://github.com/sevar-dataset/sevar) | Stereo event + VGA stereo | ✓ | RGB @30fps | ✓ (MoCap) | medium | custom | ☐ Not downloaded (VR/AR head-mounted) |
+| **CEAR** [page](https://daroslab.github.io/cear/) | DAVIS-346 + RGB-D | ✓ | RGB | ✓ (MoCap) | medium | ROS bag | ☐ Not downloaded (quadruped robot) |
+
+### Simulation pipeline (used in current prototype)
+
+When a real event camera is unavailable, the standard practice (DEGS, ERF-GS, EdMCGS) is to generate synthetic events from video via a physical event simulator:
+
+| Tool | Repo | Status |
+|---|---|---|
+| **v2e** | [SensorsINI/v2e](https://github.com/SensorsINI/v2e) | ☐ Not installed (needs Java + SuperSloMo) |
+| **ESIM** | [uzh-rpg/esim](https://github.com/uzh-rpg/esim) | ☐ Not installed (needs ROS) |
+| **In-house simulator** | `model/event_video_dataset.py` | ✅ Implemented & used |
+
+### Current prototype dataset
+
+| Source | Video | Events | Resolution | Status |
+|---|---|---|---|---|
+| [test-videos.co.uk](https://test-videos.co.uk/vids/jellyfish/mp4/h264/360/Jellyfish_360_10s_1MB.mp4) jellyfish | 300 frames @30fps | 12,648 (simulated, C=0.15) | 128×128 | ✅ Downloaded & processed → `data/event_video/jellyfish_events.npz` |
+
+### TODO
+
+- [ ] Download a real DAVIS dataset (MVSEC `indoor_flying` sequence or CED) once ROS/`rosbags` parsing is wired up
+- [ ] Install v2e for higher-fidelity event simulation on arbitrary video
+- [ ] Collect a fast-motion real-video sequence (sports/animal) where the event density is high enough to show a larger EventGS improvement over the static baseline
+- [ ] Add a real DAVIS-346 capture (static camera + dynamic object) for the true EventGS setting
+- [ ] Wire the `rosbags` parser to load MVSEC/CED `.bag` files directly into the `EventVideoDataset` interface
+

@@ -1,0 +1,31 @@
+%% Preamble tweaks for the EventGS paper (CVPR 2026 template).
+\newcommand{\red}[1]{{\color{red}#1}}
+\newcommand{\todo}[1]{{\color{red}#1}}
+\newcommand{\TODO}[1]{\textbf{\color{red}[TODO: #1]}}
+
+\usepackage{microtype}
+\usepackage{enumitem}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{booktabs}
+\usepackage{multirow}
+
+% Common math operators
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+% Paper-specific shortcuts
+\newcommand{\Gt}{G(t)}
+\newcommand{\Gzero}{G_0}
+\newcommand{\dG}{\delta\theta}
+\newcommand{\dmu}{\delta\mu}
+\newcommand{\dalpha}{\delta\alpha}
+\newcommand{\dcolor}{\delta c}
+\newcommand{\Lpos}{\mathcal{L}_{\text{pos}}}
+\newcommand{\Lneg}{\mathcal{L}_{\text{neg}}}
+\newcommand{\Levent}{\mathcal{L}_{\text{event}}}
+\newcommand{\Lphoto}{\mathcal{L}_{\text{photo}}}
+\newcommand{\Lcmax}{\mathcal{L}_{\text{cmax}}}
+\newcommand{\Lobs}{\mathcal{L}_{\text{obs}}}
+\newcommand{\IWE}{\mathrm{IWE}}
+\newcommand{\Sobs}{s_{\mathrm{obs}}}

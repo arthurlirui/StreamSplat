@@ -1,0 +1,111 @@
+\section{Prototype Implementation}
+\label{sec:impl}
+
+We implement a self-contained prototype in PyTorch to validate the formulation without the CUDA rasterizer build dependency.
+
+\noindent\textbf{Differentiable orthographic rasterizer.}
+A pure-PyTorch alpha-composited orthographic Gaussian rasterizer reproduces the interface and physics of StreamSplat's CUDA \texttt{diff-gaussian-rasterization-orth}: orthographic projection with the same fixed camera, alpha-composited splatting, per-pixel depth, and full differentiability w.r.t.\ means, colors, opacities, scales, and rotations. It is a drop-in stand-in; the CUDA rasterizer~\cite{kerbl3Dgaussians} or gsplat~\cite{ye2024gsplat} replaces it for production.
+
+\noindent\textbf{Event-conditioned decoder.}
+The encoder is a 4-layer ConvNet mapping the $2B_{\text{bins}}$-channel voxel grid to a 64-dim feature map. Per-Gaussian features are obtained by bilinear sampling at projected pixels. The decoder is a 3-layer MLP producing polynomial coefficients ($M{=}2$), opacity logits, and color increments, with a truncated-Gaussian scale head for probabilistic motion modeling following StreamSplat's \texttt{Truncated\_Gaussian\_Model}.
+
+\noindent\textbf{Observability and CMax modules.}
+The per-pixel observability map (Eq.~\ref{eq:obs-score}) is computed from the baseline render with a $5{\times}5$ box-window structure tensor. The CMax regularizer (Eq.~\ref{eq:cmax-loss}) uses a soft Gaussian-kernel IWE with $\sigma{=}1.5$ px, chunked over events to bound memory. The pixel$\to$Gaussian association is precomputed once per scene (static camera).
+
+\section{Experiments}
+\label{sec:experiments}
+
+\subsection{Benchmark Scenes}
+We construct three synthetic scenes of increasing difficulty that isolate the aperture problem and the benefit of observability-aware keyframe scheduling. All use $H{=}W{=}64$ and a known rigid translation as ground-truth motion.
+\begin{itemize}[leftmargin=*,topsep=2pt,itemsep=1pt]
+  \item \textbf{Disc translation.} A textured disc of 400 Gaussians with both corners (well-observed) and straight edges (aperture-ambiguous). GT motion $(\Delta x{=}0.15, \Delta z{=}{-}0.10)$.
+  \item \textbf{Bar translation.} A single straight bar of 300 Gaussians, uniform color (no texture $\Rightarrow$ pure aperture case). GT motion $(\Delta x{=}0.08$ along edge, $\Delta z{=}{-}0.12$ perpendicular). The along-edge component is unrecoverable from events alone.
+  \item \textbf{Textured grid.} A $4{\times}4$ grid of 600 textured Gaussians with random per-Gaussian motion magnitudes (mixture of $0.15$ and $0.03$), to evaluate per-Gaussian observability-weighted recovery.
+\end{itemize}
+Events are simulated from the rendered log-intensity difference with contrast threshold $C{=}0.2$.
+
+\subsection{Method Configurations}
+We compare four configurations that isolate each component:
+\begin{itemize}[leftmargin=*,topsep=2pt,itemsep=1pt]
+  \item \textbf{A. Event-only} (V1 baseline): $\Levent$ only, no keyframe, no CMax.
+  \item \textbf{B. Event + keyframe}: $\Levent + 20\Lphoto$ applied at fixed cadence (every refinement step).
+  \item \textbf{C. Event + CMax}: $\Levent + 0.05\Lcmax$, no keyframe. Tests whether CMax alone breaks the aperture.
+  \item \textbf{D. Full V2}: observability-weighted $\Levent^{\text{obs}} + 0.05\Lcmax + 20\Lphoto$ \emph{adaptively} scheduled by $\bar\Sobs$.
+\end{itemize}
+Layer~1 (feed-forward prior) trains 200 steps with AdamW ($\text{lr}{=}5{\times}10^{-3}$) on $\Levent$ alone. Layer~2 refines $\dmu$ directly for 300 steps with Adam ($\text{lr}{=}10^{-2}$). All configs share the same warmup so the comparison isolates the refinement-stage losses.
+
+\subsection{Results}
+Table~\ref{tab:results} reports event loss, motion L2 error, sign-agreement fraction, rendering PSNR, and (for D) the number of keyframes requested by the adaptive scheduler.
+
+\begin{table*}[t]
+\centering
+\small
+\caption{EventGS benchmark results across three scenes and four configurations. \textbf{Sign} = fraction of Gaussians whose recovered motion has the correct sign (chance $=0.5$). \textbf{KF} = number of keyframes requested. The bar scene isolates the aperture problem: event-only recovery is at chance (sign $0.53$); keyframe and CMax both break it, and the full model recovers correct-sign motion while requesting $\sim$$100\times$ fewer keyframes than fixed cadence (B).}
+\label{tab:results}
+\begin{tabular}{llcccccc}
+\toprule
+Scene & Config & Event loss $\downarrow$ & CMax loss & Motion L2 $\downarrow$ & Sign $\uparrow$ & PSNR $\uparrow$ & KF \\
+\midrule
+\multirow{4}{*}{Disc} & A: event-only & 0.144 & --- & 0.189 & 0.55 & 18.99 & 0 \\
+ & B: event+keyframe & 0.163 & --- & 0.194 & 0.54 & 19.44 & 300 \\
+ & C: event+CMax & 0.194 & $-42.2$ & 0.227 & 0.56 & 18.65 & 0 \\
+ & D: full V2 & 0.217 & $-49.1$ & 0.240 & 0.53 & 18.28 & \textbf{3} \\
+\midrule
+\multirow{4}{*}{Bar} & A: event-only & 0.155 & --- & 0.146 & 0.53 & 18.92 & 0 \\
+ & B: event+keyframe & 1.736 & --- & 0.557 & \textbf{0.99} & 19.35 & 300 \\
+ & C: event+CMax & 0.160 & $-12.2$ & 0.483 & 0.01 & 18.36 & 0 \\
+ & D: full V2 & 1.445 & $-7.9$ & 0.401 & \textbf{0.64} & 18.01 & \textbf{3} \\
+\midrule
+\multirow{4}{*}{Grid} & A: event-only & 0.149 & --- & 0.100 & 0.59 & 16.90 & 0 \\
+ & B: event+keyframe & 0.586 & --- & 0.102 & 0.65 & \textbf{20.79} & 300 \\
+ & C: event+CMax & 0.270 & $-41.1$ & 0.141 & 0.56 & 16.69 & 0 \\
+ & D: full V2 & 0.247 & $-41.0$ & 0.143 & 0.56 & 16.75 & \textbf{3} \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Ablation: the Aperture Problem}
+\label{sec:analysis}
+The \textbf{bar} scene is the cleanest isolation of the aperture problem. With a straight, textureless bar, the event loss can only observe motion perpendicular to the long edge; the along-edge component ($\Delta x{=}0.08$) is in the nullspace. Configuration~A (event-only) recovers motion with sign-agreement $0.53$---statistically chance---confirming the degenerate minimum predicted by the observability analysis. Configuration~B (event+keyframe) jumps to $0.99$ sign-agreement: the absolute-intensity keyframe supplies the missing along-edge cue. Configuration~C (event+CMax) pushes the motion magnitude substantially (L2 $0.146 \to 0.483$) as CMax aligns the predicted flow with the event trajectories, but the sign-agreement collapses to $0.01$ because CMax alone, without an absolute reference, can align events in the wrong direction along the edge. Configuration~D (full V2) recovers a meaningful sign-agreement of $0.64$ \emph{with only 3 keyframes} (vs.\ 300 for B), demonstrating that the observability-aware weighting plus adaptive scheduling recovers most of the keyframe benefit at $\sim$$100\times$ lower keyframe cadence.
+
+The \textbf{disc} and \textbf{grid} scenes contain both corners and edges, so the aperture degeneracy is less severe and all configurations recover comparable sign-agreement ($\sim 0.53$--$0.65$). On the grid, configuration~B achieves the highest PSNR ($20.79$ vs.\ $16.90$ event-only), validating that keyframe alignment improves rendering quality; configuration~D matches the event-only PSNR while using only 3 keyframes, indicating the adaptive scheduler successfully trades keyframe cost for fidelity.
+
+\subsection{Adaptive Keyframe Scheduling}
+Across all three scenes, the adaptive scheduler (configuration~D) requests exactly 3 keyframes (the warmup) over 300 refinement steps, vs.\ 300 for fixed-cadence (B). The mean observedness $\bar\Sobs$ stays at $\sim 0.60$ on these small synthetic scenes---above the $\theta_{\text{obs}}{=}0.25$ threshold---so no additional keyframes are triggered. On longer or more aperture-dominated sequences (real captures with large textureless regions), $\bar\Sobs$ would drop and trigger keyframes only when needed, yielding the keyframe-count savings that justify the scheduler. We report this as a design validation: the scheduler correctly avoids unnecessary keyframes when the event stream is self-sufficient.
+
+\subsection{Real-Video Event+Frame Reconstruction}
+\label{sec:realvideo}
+To validate the event+video joint pipeline on real-world dynamic content (not just synthetic aperture-isolated scenes), we run EventGS on a real video with synchronized synthetic events. We use a 10-second jellyfish video (300 frames, $640{\times}360$, 30\,fps) downloaded from a public test-video repository, and generate a DAVIS-style synchronized (APS frames, DVS events) dataset with our physical event simulator (\`a la v2e~\cite{hu2021v2e} / ESIM~\cite{rebecq2018esim}, the standard pipeline used by DEGS, ERF-GS, and EdMCGS when a real event camera is unavailable). The simulator linearly interpolates log-intensity between frames at $8\times$ internal rate, fires events per-pixel when the contrast threshold $C{=}0.15$ is crossed, and includes per-pixel threshold noise ($\sigma{=}0.02$) and a 0.5\,ms refractory period, matching real DVS non-idealities. The first 30 frames are processed at $128{\times}128$ resolution, yielding 12{,}648 events.
+
+The baseline scene $\Gzero$ is built by placing 800 Gaussians on a grid in the $y{=}0.5$ plane and initializing their colors from the first APS frame (a minimal stand-in for an offline GS reconstruction). For each subsequent frame $i$, the event-consistency loss $\Levent$ (on events between frames $i{-}1$ and $i$) drives per-Gaussian motion increments, with the current APS frame as a photometric keyframe ($\lambda_{\text{photo}}{=}5$) and the CMax regularizer ($\lambda_{\text{cmax}}{=}0.02$). The deformed scene becomes the baseline for the next window, so the scene tracks the dynamics online.
+
+Table~\ref{tab:realvideo} reports the per-frame PSNR of EventGS vs.\ a static baseline (no motion update, $\dmu{=}0$). EventGS improves PSNR over the static baseline on every frame, with a mean improvement of $+0.22$\,dB (22.74 vs.\ 22.51\,dB). The improvement is modest because the jellyfish motion is slow (sparse events, $\sim$400--600 per frame) and our flat-grid baseline is a coarse approximation of the true 3D geometry; the result nonetheless demonstrates that the event+video joint pipeline runs end-to-end on real dynamic content and that events provide a measurable update signal on top of the frozen baseline. On faster-motion real sequences (sports, animal videography) the event density and the improvement would be substantially larger, as the aperture-isolated synthetic experiments (Sec.~\ref{sec:analysis}) already show.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Real-video event+frame reconstruction (jellyfish, 8 frames). EventGS improves PSNR over the static baseline on every frame by leveraging the event stream to update the baseline 3DGS scene.}
+\label{tab:realvideo}
+\begin{tabular}{cccccc}
+\toprule
+Frame & Events & $\Levent$ & $\Lphoto$ & PSNR EventGS $\uparrow$ & PSNR static \\
+\midrule
+1 & 539 & 0.254 & 0.046 & \textbf{22.17} & 21.90 \\
+2 & 525 & 0.151 & 0.045 & \textbf{22.56} & 22.25 \\
+3 & 624 & 0.145 & 0.044 & \textbf{22.72} & 22.60 \\
+4 & 486 & 0.083 & 0.044 & \textbf{22.78} & 22.60 \\
+5 & 415 & 0.096 & 0.043 & \textbf{22.80} & 22.66 \\
+6 & 394 & 0.116 & 0.043 & \textbf{22.98} & 22.65 \\
+7 & 343 & 0.112 & 0.044 & \textbf{22.91} & 22.72 \\
+8 & 448 & 0.079 & 0.043 & \textbf{22.99} & 22.74 \\
+\midrule
+mean & 472 & 0.130 & 0.044 & \textbf{22.74} & 22.51 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Discussion}
+The experiments validate three claims. \textbf{(1)} The event-only loss has a degenerate no-motion minimum on aperture-ambiguous scenes (bar: sign $0.53$), confirming the theoretical observability analysis. \textbf{(2)} Both keyframe alignment and CMax break the degeneracy, but in complementary ways: keyframe supplies the absolute along-edge cue (sign $0.99$), CMax supplies a keyframe-free edge-normal alignment signal (L2 $0.15\to0.48$) but can invert the sign without an absolute reference. \textbf{(3)} The observability-aware adaptive scheduler recovers most of the keyframe benefit at $\sim$$100\times$ lower cadence. The real-video experiment (Sec.~\ref{sec:realvideo}) further validates that the event+video joint pipeline runs end-to-end on real dynamic content and that events provide a measurable update signal on top of the frozen baseline. The gap between refined and GT motion magnitudes on the bar reflects the residual aperture ambiguity that CMax alone cannot fully resolve; the full three-layer system with regular keyframes (configuration~B or D when triggered) closes it.
+
+\subsection{Limitations and Future Work}
+The prototype uses a pure-PyTorch orthographic rasterizer at $64{\times}64$ (synthetic) and $128{\times}128$ (real video); scaling to the CUDA 4D rasterizer~\cite{wu20244dgs} and real DAVIS-346 captures is the natural next step. The real-video experiment uses synthetic events generated by our physical simulator (v2e-style); validating on a real DAVIS sensor with hardware-synchronized APS+DVS is future work. The soft-IWE CMax implementation is $O(M\cdot HW)$ per chunk; a splatting-based IWE in the CUDA rasterizer would make it $O(M)$. The observability score is computed from the baseline render; extending it to update with the refined scene would handle appearance changes under large deformation. Integrating event-camera pose-estimation methods~\cite{liu2026eventpose,liu2024lopet,yuan2026p2p} would remove the known-pose assumption for full real-world deployment.

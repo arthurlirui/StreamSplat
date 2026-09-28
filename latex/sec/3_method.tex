@@ -1,0 +1,113 @@
+\section{Method}
+\label{sec:method}
+
+\subsection{Problem Setting}
+Given a frozen baseline 3D Gaussian scene $\Gzero = \{(\mu_i, c_i, \alpha_i, s_i, q_i)\}_{i=1}^N$ and an asynchronous event stream $\mathcal{E}=\{e_k\}_{k=1}^M$ from a static event camera with known pose, we seek the dynamic increment $\dG(t)=\{\dmu_i(t),\dalpha_i(t),\dcolor_i(t)\}$ such that the deformed scene
+\begin{equation}
+  \Gt = \Gzero \oplus \dG(t),\;
+  \mu_i(t)=\mu_i+\dmu_i(t),\;
+  \alpha_i(t)=\sigma(\mathrm{logit}\,\alpha_i + \dalpha_i(t)),\;
+  c_i(t)=c_i+\dcolor_i(t),
+  \label{eq:deform}
+\end{equation}
+explains the events via Eq.~\ref{eq:event-model}. The baseline $\Gzero$ is held fixed; only $\dG$ is learned.
+
+\subsection{Polynomial Motion Parameterization}
+We parameterize the translation increment as a polynomial in normalized time $t\in[0,1]$, following StreamSplat~\cite{streamsplat2025}:
+\begin{equation}
+  \dmu_i(t) = \sum_{m=1}^{M} a_{i,m}\, t^m,\quad a_{i,m}\in\mathbb{R}^3,
+  \label{eq:poly}
+\end{equation}
+with order $M{=}2$ in our prototype. This is explicit, extrapolates stably, and is compatible with 4D Gaussian rasterizers~\cite{wu20244dgs} supporting time-dependent scale and rotation.
+
+\subsection{Event-Consistency Loss}
+The core loss derives from Eq.~\ref{eq:event-model}. For a time window $[t_a,t_b]$ with rendered intensities $I_a, I_b$ and event set $\mathcal{E}_w$,
+\begin{equation}
+  \Levent = \underbrace{\frac{1}{|\mathcal{E}_w|}\sum_{k\in\mathcal{E}_w}
+    \rho\!\big(\Delta\log I_k - p_k C\big)}_{\Lpos}
+  + \lambda_{\text{neg}}\underbrace{\frac{1}{|\bar{\mathcal{E}}_w|}\sum_{j\notin\mathcal{E}_w}
+    \mathrm{ReLU}(|\Delta\log I_j| - \tau)^2}_{\Lneg},
+  \label{eq:event-loss}
+\end{equation}
+where $\Delta\log I = \log I_b - \log I_a$ (grayscale), $\rho$ is an $\ell_1$ penalty, $C$ is the contrast threshold, and $\tau$ a soft threshold. $\Lpos$ requires event pixels to exhibit the predicted log-intensity change with correct sign. $\Lneg$ is the key novelty: pixels that did \emph{not} fire must show small predicted change---bidirectional supervision unavailable to E2VID, which observes only positive events.
+
+\subsection{Observability-Aware Weighting and Keyframe Scheduling}
+\label{sec:obs}
+$\Levent$ has a known degenerate minimum. A single event is one scalar constraint per pixel, but $\dmu_i\in\mathbb{R}^3$ has three degrees of freedom; the event loss only constrains the component of $\dmu_i$ along the projected image gradient $\nabla I$. Along a straight edge, $\nabla I$ has a single dominant direction and the tangential component of $\dmu_i$ lies in the nullspace---the 3D analogue of the aperture problem~\cite{barron1994aperture}. The no-motion solution ($\dmu_i{=}0$) trivially satisfies $\Lneg$ and yields a small $\Lpos$, so the event-only loss admits a degenerate minimum that is not the true motion.
+
+We make this degeneracy \emph{computable} via a per-Gaussian observability score ${\Sobs}_i\in[0,1]$ derived from the structure tensor of the baseline render. For the rendered baseline image $I_0$, the structure tensor at pixel $\mathbf{p}$ is
+\begin{equation}
+  S(\mathbf{p}) = \sum_{\mathbf{q}\in\mathcal{N}(\mathbf{p})} \nabla I_0(\mathbf{q})\,\nabla I_0(\mathbf{q})^\top \in \mathbb{R}^{2\times 2},
+  \label{eq:structure-tensor}
+\end{equation}
+the same quantity underlying Lucas-Kanade's $A^\top A$ matrix and the Harris corner detector. We define
+\begin{equation}
+  {\Sobs}(\mathbf{p}) = \tanh\!\big(\mathrm{softplus}\big(\tfrac{\det S(\mathbf{p})}{\mathrm{tr}\,S(\mathbf{p})+\epsilon}\big)\big) \in [0,1],
+  \label{eq:obs-score}
+\end{equation}
+which is small along straight edges (one eigenvalue $\approx 0$, $\det S\approx 0$) and large at corners and textured regions (both eigenvalues comparable). We sample ${\Sobs}_i$ at each Gaussian's projected pixel and use it to (i) \emph{weight} the event loss and (ii) \emph{schedule} keyframes.
+
+\medskip\noindent\textbf{Loss weighting.} We replace $\Lpos$ in Eq.~\ref{eq:event-loss} with an observability-weighted variant,
+\begin{equation}
+  \Lpos^{\text{obs}} = \frac{1}{|\mathcal{E}_w|}\sum_{k\in\mathcal{E}_w} w_{i(k)}\,\rho\!\big(\Delta\log I_k - p_k C\big),\quad
+  w_i = \frac{1}{1 + \beta(1-{\Sobs}_i)},
+  \label{eq:obs-weight}
+\end{equation}
+where $i(k)$ is the Gaussian whose projection is closest to event $k$ (precomputed via the static pixel$\to$Gaussian map). Well-observed Gaussians (corners/textures, ${\Sobs}_i{\to}1$) receive weight $\to 1$ and drive the motion; poorly-observed ones (edges/flats, ${\Sobs}_i{\to}0$) are down-weighted to $\tfrac{1}{1+\beta}$ so they cannot pull the solution toward the degenerate no-motion minimum.
+
+\medskip\noindent\textbf{Adaptive keyframe scheduling.} Events carry no absolute intensity, so long sequences drift and the aperture degeneracy accumulates. We periodically align the scene to an absolute-intensity keyframe---an APS frame from a DVS+APS sensor~\cite{gallego2020event} or an event-integrated reconstruction---via
+\begin{equation}
+  \Lphoto = \|\,R(\Gt) - I_{\text{keyframe}}\,\|_1.
+  \label{eq:photo-loss}
+\end{equation}
+Rather than applying $\Lphoto$ at a fixed cadence, we trigger a keyframe only when the running mean observedness $\bar\Sobs$ drops below a threshold $\theta_{\text{obs}}$: the event stream is then dominated by aperture-ambiguous regions and can no longer disambiguate the motion on its own. This replaces a fixed-cadence trigger with a principled, content-adaptive one (Algorithm~\ref{alg:online}, line~10).
+
+\subsection{Contrast-Maximization Regularizer}
+\label{sec:cmax}
+The observability weighting prevents the degenerate minimum but does not, by itself, \emph{recover} the tangential motion component along edges---it only stops the event loss from forcing it to zero. To actively break the aperture ambiguity in every window, keyframe-free, we add a Contrast-Maximization (CMax) term~\cite{gallego2018contrast} on the predicted 2D Gaussian flow. For each Gaussian $i$ with predicted 2D projected displacement $\mathbf{d}_i = \pi(\mu_i+\dmu_i) - \pi(\mu_i)$ over the window, we warp each event $e_k$ onto the reference time $t_a$ by
+\begin{equation}
+  \mathbf{x}'_k = \mathbf{x}_k - \tfrac{t_k - t_a}{t_b - t_a}\,\mathbf{d}_{i(k)},
+  \label{eq:event-warp}
+\end{equation}
+and form the Image of Warped Events $\IWE(\mathbf{x}) = \sum_k \delta(\mathbf{x}-\mathbf{x}'_k)$. The CMax loss is
+\begin{equation}
+  \Lcmax = -\mathrm{Var}(\IWE),
+  \label{eq:cmax-loss}
+\end{equation}
+minimized to sharpen the warped events. Because $\mathbf{d}_i$ is a differentiable function of $\dmu_i$ through the rasterizer projection, the CMax gradient flows into $\dmu_i$ and provides an aperture-breaking signal along the \emph{edge-normal} direction---the exact direction $\Levent$ is weak in. This makes CMax and the event-consistency loss complementary: $\Levent$ fixes the magnitude (via the contrast threshold $C$), $\Lcmax$ fixes the direction (via edge alignment). Crucially, $\Lcmax$ depends only on events, so it is available in every window, unlike $\Lphoto$.
+
+\subsection{Three-Layer Architecture}
+\label{sec:arch}
+
+\noindent\textbf{Layer 1: Feed-forward event-conditioned prior.}
+An event voxel grid $\mathbf{V}\in\mathbb{R}^{B\times C\times H\times W}$ (E2VID-style, polarity-split, $C{=}2B_{\text{bins}}$) is encoded by a ConvNet into a per-pixel feature map. Because the camera is static, each Gaussian projects to a fixed pixel; we sample the event feature at each Gaussian's projected location (ray-localized decoding). A decoder MLP maps the concatenation of the Gaussian feature, the sampled event feature, and the query time $t$ to the polynomial coefficients $\{a_{i,m}\}$ and the color/opacity increments, yielding a prior $\dG^{(1)}(t)$.
+
+\noindent\textbf{Layer 2: Online analysis-by-synthesis refinement.}
+The prior $\dG^{(1)}$ initializes a direct optimization of $\dG$ against $\Levent^{\text{obs}} + \lambda_{\text{cmax}}\Lcmax$ over a short sliding window. Because the rasterizer is differentiable, gradients w.r.t.\ $\dG$ are computed exactly. In the static-camera setting the pixel-to-Gaussian Jacobian is sparse and precomputable, reducing each window to a small sparse least-squares problem.
+
+\noindent\textbf{Layer 3: Adaptive keyframe alignment.}
+When the scheduler requests a keyframe (Sec.~\ref{sec:obs}), $\Lphoto$ is added to the refinement objective and the reference frame $I_a$ is refreshed. This resolves residual aperture ambiguity and corrects long-term drift.
+
+\subsection{Ray-Localized Decoding}
+A defining advantage of the static-camera setting is precomputability. We render $\Gzero$ once and record, for each pixel $p$, the ordered list of Gaussians $\mathcal{A}(p)$ contributing to it, with their depths and alpha weights. An event at pixel $p_k$ therefore implicates only $\mathcal{A}(p_k)$; the decoder samples the event feature at each Gaussian's projected pixel rather than performing dense global attention. This makes the update cost $O(|\mathcal{E}_w|)$ rather than $O(N)$.
+
+\begin{algorithm}[t]
+\caption{EventGS online update (one window)}
+\label{alg:online}
+\begin{algorithmic}[1]
+\State \textbf{Input:} frozen $\Gzero$, precomputed $\mathcal{A}$, events $\mathcal{E}_w$ in $[t_a,t_b]$, reference $I_a$, scheduler state
+\State Build event voxel grid $\mathbf{V}$ from $\mathcal{E}_w$
+\State $\dG^{(1)} \gets \text{Decoder}(\Gzero.\text{feat},\, \text{Enc}(\mathbf{V}),\, t_b)$ \Comment{Layer 1}
+\State Compute ${\Sobs}_i$ from structure tensor of $I_a$; set weights $w_i$ (Eq.~\ref{eq:obs-weight})
+\State Initialize $\dG \gets \dG^{(1)}$
+\For{few steps} \Comment{Layer 2}
+  \State $I_b \gets \text{Rasterize}(\Gzero \oplus \dG)$
+  \State $\mathcal{L} \gets \Levent^{\text{obs}}(I_a,I_b,\mathcal{E}_w) + \lambda_{\text{cmax}}\Lcmax(\mathcal{E}_w,\dG)$
+  \State $\dG \gets \dG - \eta\,\nabla_{\dG}[\mathcal{L} + \lambda_p\|\dG\|^2]$
+\EndFor
+\If{scheduler requests keyframe ($\bar\Sobs < \theta_{\text{obs}}$)} \Comment{Layer 3}
+  \State Refine $\dG$ with $\Lphoto$; update $I_a \gets I_b$; reset scheduler
+\EndIf
+\State \textbf{Output:} updated scene $\Gt=\Gzero\oplus\dG$
+\end{algorithmic}
+\end{algorithm}
