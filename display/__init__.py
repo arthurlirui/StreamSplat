@@ -36,11 +36,26 @@ This module provides:
 The module is intentionally torch-only and has no GUI dependency, so it
 integrates into the existing training / inference scripts and the
 experiment harness.
+
+The rasterizer-backed `StreamingDisplay` is imported lazily so that the
+buffer / smoothing operators can be used without the CUDA Gaussian
+rasterizer extension being installed.
 """
 from __future__ import annotations
 from .buffer import DynamicGaussianBuffer, online_temporal_smooth, popping_suppress
-from .streaming_display import StreamingDisplay, DisplayConfig
-from .video_writer import write_frame, write_video
+
+
+def __getattr__(name):
+    # Lazy import: only pull in StreamingDisplay/DisplayConfig when requested,
+    # so that `import display.buffer` works without the CUDA rasterizer.
+    if name in ("StreamingDisplay", "DisplayConfig"):
+        from . import streaming_display as _sd
+        return getattr(_sd, name)
+    if name in ("write_frame", "write_video"):
+        from . import video_writer as _vw
+        return getattr(_vw, name)
+    raise AttributeError(f"module 'display' has no attribute {name!r}")
+
 
 __all__ = [
     "DynamicGaussianBuffer",

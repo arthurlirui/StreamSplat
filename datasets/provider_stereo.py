@@ -26,6 +26,7 @@ from typing import Optional, Tuple
 
 import numpy as np
 import torch
+import torch.nn.functional as F
 from torch.utils.data import Dataset
 import torchvision.transforms as tf
 from PIL import Image
@@ -181,8 +182,11 @@ class StereoVideoDataset(Dataset):
             left_imgs.append(self.transform(l))
             right_imgs.append(self.transform(r))
             d = self._load_depth(seq_dir, fi, H, W)
-            d = torch.from_numpy(d).float().unsqueeze(0)
-            d = self.depth_transform(d.unsqueeze(0)).squeeze(0)
+            d = torch.from_numpy(d).float().unsqueeze(0).unsqueeze(0)  # [1,1,H,W]
+            # Resize via nearest-neighbor interpolation on the tensor directly
+            # (depth_transform's ToTensor expects a PIL/ndarray input, not a
+            # tensor, so we cannot reuse it here).
+            d = F.interpolate(d, size=(H, W), mode='nearest').squeeze(0)  # [1,H,W]
             depths.append(d)
 
         # Left + right stacked as two views: [V=2, C, H, W]

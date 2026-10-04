@@ -37,22 +37,9 @@ from torch.utils.data import DataLoader
 
 from configs.options_stereo import StereoOptions
 from datasets.provider_stereo import StereoVideoDataset, stereo_collate
-from model.stereo_splat_model import StereoSplatModel
-from display.streaming_display import StreamingDisplay, DisplayConfig
-
-
-def _metrics(pred: torch.Tensor, gt: torch.Tensor, lpips_fn=None):
-    mse = F.mse_loss(pred, gt)
-    psnr = -10.0 * torch.log10(mse + 1e-12)
-    # SSIM (simple, channel-mean) — full SSIM via utils if available.
-    try:
-        from utils.metrics import compute_ssim, compute_lpips
-        ssim = compute_ssim(pred, gt).mean()
-        lp = compute_lpips(pred * 2 - 1, gt * 2 - 1).mean() if lpips_fn is None else lpips_fn(pred * 2 - 1, gt * 2 - 1).mean()
-    except Exception:
-        ssim = torch.tensor(0.0, device=pred.device)
-        lp = torch.tensor(0.0, device=pred.device)
-    return {'psnr': float(psnr), 'ssim': float(ssim), 'lpips': float(lp)}
+from experiments.metrics import metrics_dict as _metrics
+# Heavy model import (kiui + CUDA rasterizer) is deferred to main() so the
+# module can be imported on CPU-only machines for unit testing.
 
 
 def run_one_method(model, loader, opt, device, method_name: str,
@@ -108,6 +95,8 @@ def main():
     loader = DataLoader(test_set, batch_size=args.batch_size,
                         collate_fn=stereo_collate, num_workers=0)
 
+    # Heavy import deferred to here so the module imports cleanly on CPU.
+    from model.stereo_splat_model import StereoSplatModel
     model = StereoSplatModel(opt).to(device)
     if args.checkpoint and os.path.exists(args.checkpoint):
         from safetensors.torch import load_file

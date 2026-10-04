@@ -55,7 +55,11 @@ def _load_pairs(seq_dir: str):
 
 
 def _sgbm_disparity(left: np.ndarray, right: np.ndarray) -> np.ndarray:
-    """OpenCV StereoSGBM fallback (no GPU required)."""
+    """OpenCV StereoSGBM fallback (no GPU required).
+
+    The disparity search range is sized to the image width so the function
+    works on small synthetic test images as well as full-resolution frames.
+    """
     try:
         import cv2
     except ImportError as e:
@@ -65,8 +69,14 @@ def _sgbm_disparity(left: np.ndarray, right: np.ndarray) -> np.ndarray:
     if left.ndim == 3:
         left = cv2.cvtColor(left, cv2.COLOR_RGB2GRAY)
         right = cv2.cvtColor(right, cv2.COLOR_RGB2GRAY)
+    W = left.shape[1]
+    # numDisparities must be positive, divisible by 16, and leave enough
+    # width for the SAD window. Cap at 96 for normal images, shrink for
+    # tiny test images.
+    num_disp = max(16, min(96, ((W - 8) // 16) * 16))
+    if num_disp < 16:
+        num_disp = 16
     min_disp = 0
-    num_disp = 96  # must be divisible by 16
     block = 5
     matcher = cv2.StereoSGBM_create(
         minDisparity=min_disp,
