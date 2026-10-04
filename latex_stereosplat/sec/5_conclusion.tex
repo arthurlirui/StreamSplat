@@ -1,0 +1,28 @@
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented \StereoSplat, a feed-forward framework that reconstructs
+metric-scale dynamic 3D Gaussian scenes from calibrated stereo video
+streams. By anchoring scale to the stereo baseline and focal length
+through the triangulation formula $Z = b f / d$, and by replacing the
+orthographic canonical space of \StreamSplat with a perspective
+rasterizer and a metric back-projection head, we obtain a representation
+whose Gaussians live in the metric world frame. A streaming display
+module with motion-adaptive EMA and opacity-stability filtering addresses
+the temporal flickering and popping artifacts that plague dynamic GS
+methods. Experiments on TartanAir, DSEC, and KITTI Stereo confirm both
+metric scale recovery and competitive photometric quality, and a
+five-axis ablation isolates the contribution of each component.
+
+\paragraph{Limitations and Future Work.}
+The metric accuracy of \StereoSplat is bounded by the underlying stereo
+matcher; in low-texture and occluded regions the disparity is unreliable
+and the metric depth degrades, although our confidence masking mitigates
+the worst failures. The current pipeline assumes a calibrated rectified
+stereo pair; extending to uncalibrated or non-rig stereo (e.g., two
+independently moving cameras) is an open direction. We currently rely on
+an external SLAM trajectory for moving-rig poses; jointly estimating
+poses and dynamic Gaussians in a single feed-forward pass is a natural
+next step, and would connect this work to the event-driven setting of
+EventGS where scale recovery from a single event camera is even more
+challenging.

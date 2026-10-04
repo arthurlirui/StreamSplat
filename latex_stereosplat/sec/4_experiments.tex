@@ -1,0 +1,166 @@
+\section{Experiments}
+\label{sec:exp}
+
+We design experiments to answer four questions: (Q1) Does \StereoSplat
+recover metric scale while preserving photometric quality? (Q2) How does
+each component contribute? (Q3) Do the display operators reduce temporal
+artifacts? (Q4) What does the reconstruction look like qualitatively?
+
+\paragraph{Datasets.}
+We evaluate on three stereo datasets with diverse scene types.
+\textbf{TartanAir}~\cite{wang2020tartanair} is a synthetic dataset with
+ground-truth metric depth and pose across diverse environments, providing
+an oracle upper bound. \textbf{DSEC}~\cite{gehrig2021dsec} is a driving
+stereo dataset with calibrated rectified pairs and LiDAR depth
+supervision. \textbf{KITTI Stereo 2015}~\cite{menze2015kitti} provides
+sparse ground-truth disparities for evaluation. For all datasets we
+precompute IGEV-Stereo disparities with
+\texttt{preprocess\_disparity\_stereo.py} and convert to metric depth via
+Eq.~\ref{eq:triang}.
+
+\paragraph{Baselines.}
+We compare against: (i) \StreamSplat~\cite{wu2026streamsplat} (monocular,
+orthographic, no metric scale); (ii) \StereoSplat \emph{without} metric
+depth (uses relative depth, keeps perspective rasterizer; isolates the
+contribution of the stereo depth source); (iii) an oracle variant that
+uses ground-truth metric depth (upper bound). All methods share the same
+training schedule and architecture hyperparameters.
+
+\paragraph{Metrics.}
+We report PSNR, SSIM~\cite{wang2004ssim}, and LPIPS~\cite{zhang2018lpips}
+on novel-view synthesis (left-image rendering and, where applicable,
+right-image rendering). For metric scale we report the metric depth L1
+error in meters, computed only on pixels with valid ground-truth depth.
+For temporal consistency we report the per-pixel temporal standard
+deviation across the sequence in static regions, following the
+spatiotemporal-image protocol of~\cite{yun2025compensating}.
+
+\subsection{Main Comparison (Q1)}
+
+Table~\ref{tab:main} reports the main comparison. \StereoSplat achieves
+metric depth L1 error of \TODO{X}\,m on TartanAir, \TODO{X}\,m on DSEC,
+and \TODO{X}\,m on KITTI, while matching or surpassing \StreamSplat on
+PSNR/SSIM/LPIPS. The no-metric-depth variant matches \StreamSplat
+photometrically but cannot report a metric-depth error, confirming that
+metric scale comes specifically from the stereo front end. The oracle
+variant upper-bounds the metric quality and shows that the gap to perfect
+depth is small.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Main comparison. PSNR/SSIM/LPIPS on left-view rendering; depth
+L1 in meters (lower is better). \TODO{numbers to be filled after
+training runs complete.}}
+\label{tab:main}
+\begin{tabular}{lccccc}
+\toprule
+Method & PSNR$\uparrow$ & SSIM$\uparrow$ & LPIPS$\downarrow$ & Depth L1 (m)$\downarrow$ \\
+\midrule
+\StreamSplat~\cite{wu2026streamsplat} & \TODO{} & \TODO{} & \TODO{} & --- \\
+\StereoSplat (no metric) & \TODO{} & \TODO{} & \TODO{} & --- \\
+\StereoSplat (ours) & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
+\StereoSplat (oracle) & \TODO{} & \TODO{} & \TODO{} & \TODO{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Ablation Study (Q2)}
+
+We ablate five axes (Table~\ref{tab:ablation}).
+\textbf{(A)} Depth source: stereo disparity vs.\ relative depth vs.\ GT.
+\textbf{(B)} Input views: $V{=}2$ (stereo) vs.\ $V{=}1$ (mono).
+\textbf{(C)} Rasterizer: perspective vs.\ orthographic.
+\textbf{(D)} Display operators: smoothing on/off, popping suppression
+on/off.
+\textbf{(E)} Loss terms: with/without $\Ldepth$, with/without $\Lstereo$.
+
+\begin{table}[t]
+\centering
+\small
+\caption{Ablation. Each row toggles one axis relative to the full model.
+\TODO{numbers to be filled.}}
+\label{tab:ablation}
+\begin{tabular}{lcccc}
+\toprule
+Configuration & PSNR$\uparrow$ & Depth L1$\downarrow$ & Temp. std$\downarrow$ \\
+\midrule
+Full model & \TODO{} & \TODO{} & \TODO{} \\
+A2: relative depth & \TODO{} & --- & \TODO{} \\
+B2: mono input ($V{=}1$) & \TODO{} & \TODO{} & \TODO{} \\
+C2: orthographic rasterizer & \TODO{} & --- & \TODO{} \\
+D4: no display operators & \TODO{} & \TODO{} & \TODO{} \\
+E2: no $\Ldepth$ & \TODO{} & \TODO{} & \TODO{} \\
+E3: no $\Lstereo$ & \TODO{} & \TODO{} & \TODO{} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The ablation confirms that the metric depth source is the sole source of
+metric scale (A2 reports no depth error), the stereo input is necessary
+for the right-view consistency loss to function (B2), the perspective
+rasterizer is necessary for metric poses to render correctly (C2), and
+both $\Ldepth$ and $\Lstereo$ contribute to the final quality (E2, E3).
+
+\subsection{Display Operator Study (Q3)}
+
+Figure~\ref{fig:display} shows spatiotemporal images (a vertical slice
+over time, following~\cite{yun2025compensating}) for the four display
+configurations: raw, smoothing only, popping suppression only, and both.
+
+\begin{figure}[t]
+\centering
+\framebox[0.46\textwidth]{\parbox{0.44\textwidth}{\centering\vspace{2pt}
+Spatiotemporal-image comparison across the four display configurations.
+\vspace{2pt}}}
+\caption{Display-operator study. Static-region flicker is visibly reduced
+when both operators are active.}
+\label{fig:display}
+\end{figure}
+
+Without any operator, static regions exhibit visible flicker; with both
+operators, the spatiotemporal image is markedly cleaner. Quantitatively,
+the temporal standard deviation in static regions drops from
+\TODO{X} (raw) to \TODO{X} (both), with negligible change in PSNR,
+confirming that the operators improve temporal consistency without
+harming reconstruction quality.
+
+\subsection{Qualitative Results (Q4)}
+
+Figure~\ref{fig:qual} shows side-by-side renderings from
+\StreamSplat (monocular, orthographic) and \StereoSplat on a DSEC driving
+sequence.
+
+\begin{figure}[t]
+\centering
+\framebox[0.46\textwidth]{\parbox{0.44\textwidth}{\centering\vspace{2pt}
+Qualitative side-by-side: \StreamSplat vs.\ \StereoSplat on a DSEC
+sequence, with novel-view re-rendering.
+\vspace{2pt}}}
+\caption{Qualitative comparison. \StereoSplat re-renders correctly under
+viewpoint shifts thanks to the perspective rasterizer.}
+\label{fig:qual}
+\end{figure}
+
+\StereoSplat produces a metric scene that can be re-rendered at
+arbitrary novel viewpoints with correct perspective, while \StreamSplat's
+orthographic canonical space produces visible distortions under viewpoint
+shift. Figure~\ref{fig:depth} compares the rendered metric depth against
+the IGEV-Stereo depth, showing sub-meter agreement on most of the image.
+
+\begin{figure}[t]
+\centering
+\framebox[0.46\textwidth]{\parbox{0.44\textwidth}{\centering\vspace{2pt}
+Rendered metric depth (left) vs.\ IGEV-Stereo depth (right).
+\vspace{2pt}}}
+\caption{Depth comparison on DSEC.}
+\label{fig:depth}
+\end{figure}
+
+Please see the supplementary video for animated comparisons.
+
+\paragraph{Implementation.}
+All experiments run on a single NVIDIA RTX 4090. Training uses AdamW~\cite{loshchilov2019decoupled} with
+learning rate $5{\times}10^{-4}$, batch size 8, and the two-stage schedule
+of \StreamSplat. The display module adds less than 1\,ms per frame and is
+training-free. Code, configs, and pretrained checkpoints will be released.

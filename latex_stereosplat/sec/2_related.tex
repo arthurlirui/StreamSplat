@@ -1,0 +1,60 @@
+\section{Related Work}
+\label{sec:related}
+
+\paragraph{Dynamic 3D Gaussian Splatting.}
+3D Gaussian Splatting~\cite{kerbl2023gaussian} represents scenes as a set
+of anisotropic Gaussians rasterized via differentiable tile-based
+blending, achieving photo-realistic novel-view synthesis at real-time
+rates. Extending 3DGS to dynamic scenes has proceeded along two axes.
+\emph{Offline} methods fit a per-scene deformation field on top of a
+canonical Gaussian set, either with neural
+MLPs~\cite{luiten2024dynamic,duan2024gaussian, Yang2024Deformable3G} or
+with explicit 4D primitives~\cite{wu2024gaussian}. These methods achieve
+high fidelity but require hours of per-scene optimization and access to
+the full sequence. \emph{Feed-forward} methods predict dynamic Gaussians
+in a single network pass. \StreamSplat~\cite{wu2026streamsplat} is the
+closest precursor: it processes uncalibrated monocular streams online
+with a probabilistic position sampler, a bidirectional deformation field,
+and an adaptive opacity fusion. Concurrent streaming feed-forward
+work~\cite{song2026streaming} targets static scenes with a voxel cache.
+All of these methods work in a normalized canonical space and do not
+recover metric scale; \StereoSplat preserves the feed-forward, online
+property while adding metric scale through a stereo front end.
+
+\paragraph{Stereo Matching and Metric Depth.}
+Learned stereo matching has converged on iterative cost-volume
+architectures. RAFT-Stereo~\cite{lipson2021raft} introduced all-pairs
+correlations with a ConvGRU updater; IGEV-Stereo~\cite{xu2023igev}
+augments this with a geometry encoding volume that aggregates non-local
+context, ranking first on KITTI at the time of publication with strong
+cross-dataset generalization. We use IGEV-Stereo as our disparity
+backbone, but any stereo matcher that outputs a per-pixel disparity and a
+confidence map drops into the same slot. Monocular metric depth
+estimators~\cite{yang2024depth} exist but rely on dataset-specific scale
+recovery and do not generalize to arbitrary scenes; the stereo triangulation
+formula $Z = b f / d$ is exact given calibrated intrinsics and is the
+anchor we use.
+
+\paragraph{Feed-Forward 3DGS.}
+pixelSplat~\cite{charatan2024pixelsplat} regresses Gaussians from a
+calibrated image pair; NoPoSplat~\cite{ye2024noposplat} removes the pose
+requirement; DepthSplat~\cite{chen2024depthsplat} adds a cost-volume depth
+prior. These methods target static scenes. \StreamSplat extends the
+paradigm to dynamic, online streams but keeps the orthographic canonical
+space. \StereoSplat is the first to bring the feed-forward dynamic
+setting into metric scale via stereo.
+
+\paragraph{Display Artifacts in Dynamic GS.}
+Temporal flickering in static regions is a documented failure mode of
+online dynamic GS and is addressed in~\cite{yun2025compensating} by
+learning a residual error map. FAST-GS~\cite{zhang2026fastgs} replaces
+polynomial motion with Fourier series to capture high-frequency motion
+and reduce long-term drift; DG-4DGS~\cite{chen2026dg4dgs} adds a
+deformation graph for cross-frame geometric alignment.
+Fov-GS~\cite{fan2025fovgs} accelerates dynamic-scene rendering with
+foveated splatting. Popping --- abrupt Gaussian appearance and
+disappearance --- is noted in~\cite{wu2026streamsplat} and addressed there
+with an adaptive opacity gate. Our streaming display module combines a
+motion-adaptive EMA (targeting flicker) with an opacity-stability filter
+(targeting popping), both training-free and orthogonal to the underlying
+reconstruction.

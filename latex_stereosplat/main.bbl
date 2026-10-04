@@ -1,0 +1,165 @@
+\begin{thebibliography}{23}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Charatan et~al.(2024)Charatan, Li, Tagliasacchi, and
+  Sitzmann]{charatan2024pixelsplat}
+David Charatan, Sizhe Li, Andrea Tagliasacchi, and Vincent Sitzmann.
+\newblock {pixelSplat}: 3d gaussian splats from image pairs for scalable
+  generalizable 3d reconstruction.
+\newblock In \emph{IEEE/CVF Conference on Computer Vision and Pattern
+  Recognition (CVPR)}, 2024.
+
+\bibitem[Chen et~al.(2026)Chen, Su, Weng, and Li]{chen2026dg4dgs}
+Junyu Chen, Mo Su, Dongdong Weng, and Dong Li.
+\newblock {DG-4DGS}: Deformation-graph-constrained 4d gaussian splatting for
+  temporally stable dynamic rendering.
+\newblock \emph{Virtual Reality and Intelligent Hardware}, 8\penalty0
+  (2):\penalty0 250--264, 2026.
+
+\bibitem[Chen et~al.(2024)]{chen2024depthsplat}
+Yifan Chen et~al.
+\newblock {DepthSplat}: Implicit depth, geometry, and motion-aware gaussian
+  splatting.
+\newblock In \emph{arXiv preprint arXiv:2410.10962}, 2024.
+
+\bibitem[Duan et~al.(2024)Duan, Yu, and Aiguo]{duan2024gaussian}
+Lingzhi Duan, Wei Yu, and Song Aiguo.
+\newblock 4d gaussian splatting: Real-time dynamic scene rendering with
+  gaussian primitives.
+\newblock In \emph{arXiv preprint arXiv:2402.07100}, 2024.
+
+\bibitem[Fan et~al.(2025)Fan, Wu, Shi, Zhao, Ma, and Wang]{fan2025fovgs}
+Runze Fan, Jian Wu, Xuehuai Shi, Lizhi Zhao, Qixiang Ma, and Lili Wang.
+\newblock {Fov-GS}: Foveated 3d gaussian splatting for dynamic scenes.
+\newblock \emph{IEEE Transactions on Visualization and Computer Graphics},
+  31:\penalty0 2975--2985, 2025.
+
+\bibitem[Gehrig et~al.(2021)Gehrig, Aarents, Gehrig, and
+  Scaramuzza]{gehrig2021dsec}
+Mathias Gehrig, Willem Aarents, Daniel Gehrig, and Davide Scaramuzza.
+\newblock {DSEC}: A stereo event camera dataset for driving scenarios.
+\newblock \emph{IEEE Robotics and Automation Letters (RA-L)}, 6\penalty0
+  (3):\penalty0 4947--4954, 2021.
+
+\bibitem[Kerbl et~al.(2023)Kerbl, Kopanas, Leimk{\"u}hler, and
+  Drettakis]{kerbl2023gaussian}
+Bernhard Kerbl, Georgios Kopanas, Thomas Leimk{\"u}hler, and George Drettakis.
+\newblock 3d gaussian splatting for real-time radiance field rendering.
+\newblock \emph{ACM Transactions on Graphics (TOG)}, 42\penalty0 (4), 2023.
+
+\bibitem[Lipson et~al.(2021)Lipson, Teed, and Deng]{lipson2021raft}
+Lahav Lipson, Zachary Teed, and Jia Deng.
+\newblock {RAFT-Stereo}: Multilevel recurrent field transforms for stereo
+  matching.
+\newblock In \emph{International Conference on 3D Vision (3DV)}, 2021.
+
+\bibitem[Loshchilov and Hutter(2019)]{loshchilov2019decoupled}
+Ilya Loshchilov and Frank Hutter.
+\newblock Decoupled weight decay regularization.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2019.
+
+\bibitem[Luiten et~al.(2024)Luiten, Kopanas, Leibe, and
+  Ramanan]{luiten2024dynamic}
+Jonathon Luiten, Georgios Kopanas, Bastian Leibe, and Deva Ramanan.
+\newblock Dynamic 3d gaussians: Tracking by persistent dynamic view synthesis.
+\newblock In \emph{International Conference on 3D Vision (3DV)}, 2024.
+
+\bibitem[Menze and Geiger(2015)]{menze2015kitti}
+Moritz Menze and Andreas Geiger.
+\newblock Object scene flow for autonomous vehicles.
+\newblock In \emph{IEEE/CVF Conference on Computer Vision and Pattern
+  Recognition (CVPR)}, pages 3061--3070, 2015.
+
+\bibitem[Song et~al.(2026)Song, Wang, Li, Cai, and Liu]{song2026streaming}
+Changhao Song, Yuxuan Wang, Qibiao Li, Youcheng Cai, and Ligang Liu.
+\newblock {StreamSplat}: Streaming feed-forward 3d gaussian splatting.
+\newblock In \emph{arXiv preprint arXiv:2608.01659}, 2026.
+
+\bibitem[Wang et~al.(2020)Wang, Zhu, Wang, Hu, Qiu, Wang, Hu, Kapoor, and
+  Scherer]{wang2020tartanair}
+Wenshan Wang, Delong Zhu, Xiangwei Wang, Yaoyu Hu, Yuheng Qiu, Chen Wang, Yafei
+  Hu, Ashish Kapoor, and Sebastian Scherer.
+\newblock {TartanAir}: A dataset to push the limits of visual {SLAM}.
+\newblock In \emph{IEEE/RSJ International Conference on Intelligent Robots and
+  Systems (IROS)}, pages 4909--4916, 2020.
+
+\bibitem[Wang et~al.(2004)Wang, Bovik, Sheikh, and Simoncelli]{wang2004ssim}
+Zhou Wang, Alan~C. Bovik, Hamid~R. Sheikh, and Eero~P. Simoncelli.
+\newblock Image quality assessment: From error visibility to structural
+  similarity.
+\newblock \emph{IEEE Transactions on Image Processing}, 13\penalty0
+  (4):\penalty0 600--612, 2004.
+
+\bibitem[Wu et~al.(2024)Wu, Yi, Fang, Xie, Zhang, Wei, Liu, Tian, and
+  Wang]{wu2024gaussian}
+Guanjun Wu, Taoran Yi, Jiemin Fang, Lingxi Xie, Xiaopeng Zhang, Wei Wei, Wenyu
+  Liu, Qi Tian, and Xinggang Wang.
+\newblock 4d gaussian splatting for real-time dynamic scene rendering.
+\newblock In \emph{IEEE/CVF Conference on Computer Vision and Pattern
+  Recognition (CVPR)}, 2024.
+
+\bibitem[Wu et~al.(2026)Wu, Yan, Yi, Wang, and Liao]{wu2026streamsplat}
+Zike Wu, Qi Yan, Xuanyu Yi, Lele Wang, and Renjie Liao.
+\newblock {StreamSplat}: Towards online dynamic 3d reconstruction from
+  uncalibrated video streams.
+\newblock In \emph{International Conference on Learning Representations
+  (ICLR)}, 2026.
+\newblock arXiv:2506.08862.
+
+\bibitem[Xu et~al.(2023)Xu, Wang, Ding, and Yang]{xu2023igev}
+Gangwei Xu, Xianqi Wang, Xiaohuan Ding, and Xin Yang.
+\newblock Iterative geometry encoding volume for stereo matching.
+\newblock In \emph{IEEE/CVF Conference on Computer Vision and Pattern
+  Recognition (CVPR)}, pages 21919--21928, 2023.
+
+\bibitem[Yang et~al.(2024{\natexlab{a}})Yang, Kang, Huang, Xu, Feng, and
+  Zhao]{yang2024depth}
+Lihe Yang, Bingyi Kang, Zilong Huang, Xiaogang Xu, Jiashi Feng, and Hengshuang
+  Zhao.
+\newblock {Depth Anything V2}.
+\newblock In \emph{arXiv preprint arXiv:2406.09414}, 2024{\natexlab{a}}.
+
+\bibitem[Yang et~al.(2024{\natexlab{b}})Yang, Gao, Zhou, Jiao, Zhang, and
+  Jin]{Yang2024Deformable3G}
+Ziyi Yang, Xinyu Gao, Wen Zhou, Shaohui Jiao, Yuqing Zhang, and Xiaogang Jin.
+\newblock Deformable 3d gaussians for high-fidelity monocular dynamic scene
+  reconstruction.
+\newblock In \emph{IEEE/CVF Conference on Computer Vision and Pattern
+  Recognition (CVPR)}, 2024{\natexlab{b}}.
+
+\bibitem[Ye et~al.(2024)]{ye2024noposplat}
+Zehao Ye et~al.
+\newblock {NoPoSplat}: Novel pose elevation for generalizable 3d gaussian
+  splats.
+\newblock In \emph{arXiv preprint arXiv:2406.04334}, 2024.
+
+\bibitem[Yun et~al.(2025)Yun, Bae, Son, Kim, Lee, Bang, and
+  Uh]{yun2025compensating}
+Youngsik Yun, Jeongmin Bae, Hyunseung Son, Seoha Kim, Hahyun Lee, Gun Bang, and
+  Youngjung Uh.
+\newblock Compensating spatiotemporally inconsistent observations for online
+  dynamic 3d gaussian splatting.
+\newblock In \emph{ACM SIGGRAPH Conference Papers}, 2025.
+
+\bibitem[Zhang et~al.(2018)Zhang, Isola, Efros, Shechtman, and
+  Wang]{zhang2018lpips}
+Richard Zhang, Phillip Isola, Alexei~A. Efros, Eli Shechtman, and Oliver Wang.
+\newblock The unreasonable effectiveness of deep features as a perceptual
+  metric.
+\newblock In \emph{IEEE/CVF Conference on Computer Vision and Pattern
+  Recognition (CVPR)}, 2018.
+
+\bibitem[Zhang et~al.(2026)Zhang, Lu, Li, Duan, Liu, Luo, Zhuang, Li, and
+  Ma]{zhang2026fastgs}
+Zhengyang Zhang, Ziyu Lu, PengCheng Li, Hongbo Duan, Yi Liu, Pengting Luo,
+  Peiyu Zhuang, Xinghui Li, and Shaohua Ma.
+\newblock {FAST-GS}: Frequency aware space-time gaussian splatting for
+  photorealistic dynamic novel view synthesis.
+\newblock \emph{arXiv preprint arXiv:2608.01958}, 2026.
+
+\end{thebibliography}

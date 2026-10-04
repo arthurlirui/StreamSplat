@@ -1,0 +1,158 @@
+\section{Method}
+\label{sec:method}
+
+Given a synchronized stereo video stream
+$\{I_L^t, I_R^t\}_{t=1}^{T}$ from a calibrated rig with intrinsics
+$\Kmat_L, \Kmat_R$, relative pose $(\Rmat_{LR}, \tvec_{LR})$, and baseline
+$b = \|\tvec_{LR}\|$, \StereoSplat produces a dynamic set of 3D Gaussians
+$\mathcal{G}(t)$ in the \emph{metric} world frame that can be rendered at
+any viewpoint and any timestamp. Figure~\ref{fig:pipeline} gives an
+overview. We retain the encoder, probabilistic decoder, and bidirectional
+deformation field of \StreamSplat~\cite{wu2026streamsplat} and replace
+three components: the depth source (Sec.~\ref{sec:method-depth}), the
+camera model (Sec.~\ref{sec:method-raster}), and the position
+interpretation (Sec.~\ref{sec:method-head}). We then describe the
+streaming display module (Sec.~\ref{sec:method-display}) and the training
+losses (Sec.~\ref{sec:method-loss}).
+
+\begin{figure*}[t]
+\centering
+\framebox[0.95\textwidth]{\parbox{0.92\textwidth}{\centering\vspace{2pt}
+\textbf{Pipeline.} Left/right frames and stereo metric depth enter the
+reused \StreamSplat encoder ($V{=}2$); the Gaussian decoder output is
+lifted to metric world coordinates by the Metric Head; a perspective
+rasterizer with per-frame poses renders both views; a streaming display
+module applies motion-adaptive EMA and opacity-stability filtering before
+the final frame is written. (Figure to be rendered from a trained
+checkpoint in the camera-ready version.)\vspace{2pt}}}
+\caption{\StereoSplat overview. Green blocks are reused from
+\StreamSplat~\cite{wu2026streamsplat}; orange blocks are new.}
+\label{fig:pipeline}
+\end{figure*}
+
+\paragraph{Preliminaries: \StreamSplat.}
+\StreamSplat encodes each frame into a canonical orthographic Gaussian
+set with a transformer over $8{\times}8$ patches, predicts per-pixel
+Gaussian attributes (position, scale, rotation, opacity, color) with a
+probabilistic truncated-Gaussian sampler, and models inter-frame motion
+with a bidirectional polynomial deformation field. The renderer is the
+orthographic diff-gaussian-rasterizer with a fixed identity camera.
+Position predictions are bounded to $[-1,1]$ and interpreted in the
+canonical space, which normalizes scale away.
+
+\subsection{Metric Depth from Stereo}
+\label{sec:method-depth}
+
+We replace the Depth-Anything~\cite{yang2024depth} monocular prior with a
+stereo-matching front end. For each frame pair $(I_L^t, I_R^t)$ we run
+IGEV-Stereo~\cite{xu2023igev} to obtain a disparity map
+$\disp^t$ and a confidence map $\rho^t$. Metric depth follows from the
+pinhole triangulation formula:
+\begin{equation}
+\label{eq:triang}
+\depth^t(u,v) \;=\; \frac{b \, \focal_x}{\disp^t(u,v)},
+\end{equation}
+where $\focal_x$ is the left-camera focal length in pixels. Pixels with
+$\rho^t < \tau_\rho$ or $\disp^t < \epsilon$ are masked out of all
+downstream depth supervision. The depth is stored as a
+$\mathtt{float32}$ metric map and consumed both as an encoder input
+channel (replacing the relative-depth channel of \StreamSplat) and as a
+supervision target (Sec.~\ref{sec:method-loss}). Disparities can be
+precomputed offline (\texttt{preprocess\_disparity\_stereo.py}) or
+computed online; both paths feed the same provider interface.
+
+\subsection{Perspective Rasterization with Per-Frame Poses}
+\label{sec:method-raster}
+
+We replace the orthographic rasterizer with a perspective one that
+consumes the true intrinsics and a per-frame camera pose. Concretely, for
+a camera with intrinsics $\Kmat$ and camera-to-world pose
+$(\Rmat_{c2w}, \tvec_{c2w})$ we build
+\begin{equation}
+\Vmat = \texttt{World2View}(\Rmat_{c2w}^\top, -\Rmat_{c2w}^\top \tvec_{c2w}),\quad
+\Pmat = \texttt{Perspective}(\Kmat, H, W),
+\end{equation}
+and pass $\Vmat \Pmat$ to the diff-gaussian-rasterizer CUDA kernel. The
+dynamic-motion extensions of the original orthographic renderer
+(\texttt{scales\_t}, \texttt{rotations\_r}, time-basis polynomial motion,
+time-dependent opacity decay) are preserved, so the existing dynamic
+decoder operates unchanged. For a static rig, the left pose is the
+identity and the right pose is $(\Rmat_{LR}, \tvec_{LR})$; for a moving
+rig, per-frame poses come from an offline SLAM/VIO trajectory
+(Sec.~\ref{sec:method-head}).
+
+\subsection{Metric Back-Projection Head}
+\label{sec:method-head}
+
+The decoder outputs per-pixel Gaussian attributes in the network's
+normalized convention. We reinterpret the three position channels as
+$(\delta u, \delta v, \delta z_\text{rel})$ --- a sub-pixel offset and a
+multiplicative depth residual --- and lift each Gaussian into the metric
+world frame:
+\begin{align}
+\label{eq:backproj}
+Z &= \depth(u,v) \cdot (1 + \gamma\, \delta z_\text{rel}), \\
+X &= (u + \delta u - c_x)\, Z / \focal_x, \quad
+Y = (v + \delta v - c_y)\, Z / \focal_y, \\
+\mean_\text{world} &= \Rmat_{c2w}\, (X, Y, Z)^\top + \tvec_{c2w}.
+\end{align}
+Gaussian scales are likewise lifted to meters: the in-plane scales are
+mapped through a sigmoid to a fixed range $[s_\text{min}, s_\text{max}]$
+in meters, and the depth-axis scale is set proportional to $Z$ so that
+distant Gaussians are appropriately larger. Rotation and color are kept
+as predicted. This head adds no learnable parameters; it is a fixed
+geometric transform that converts the network's normalized output into a
+metric representation.
+
+\subsection{Streaming Display Module}
+\label{sec:method-display}
+
+Dynamic GS methods suffer from temporal flickering, popping, and
+high-frequency motion blur (Sec.~\ref{sec:related}). We address these
+with a streaming display module that wraps the rasterizer in a ring
+buffer of recent Gaussian frames and applies two training-free operators
+at each step.
+
+\paragraph{Motion-Adaptive Temporal EMA.}
+Let $\mean_t, \rgb_t, \opac_t$ be the metric means, colors, and opacities
+of the current frame, and $\mean_{t-1}, \rgb_{t-1}, \opac_{t-1}$ those of
+the previous frame. We compute a per-Gaussian motion magnitude
+$m_t = \|\mean_t - \mean_{t-1}\|$ and a mixing factor
+$\alpha = \alpha_\text{static}\, \mathbb{1}[m_t < \tau_m] +
+\alpha_\text{dyn}\, (1 - \mathbb{1}[m_t < \tau_m])$ with
+$\alpha_\text{static} \gg \alpha_\text{dyn}$. The smoothed attributes are
+\begin{equation}
+\bar{\mean}_t = \alpha \mean_{t-1} + (1-\alpha) \mean_t, \quad
+\bar{\rgb}_t = \alpha \rgb_{t-1} + (1-\alpha) \rgb_t,
+\end{equation}
+and similarly for $\opac$. Scale and rotation are not smoothed. This
+strongly stabilizes static regions (where flicker is most visible) while
+preserving motion detail under fast motion.
+
+\paragraph{Opacity-Stability Filter.}
+To suppress popping, we clamp the per-frame opacity delta and apply a
+soft EMA: $\hat{\opac}_t = \beta\,(\opac_{t-1} + \text{clip}(\opac_t -
+\opac_{t-1}, -\Delta, \Delta)) + (1-\beta)\, \opac_t$, with
+$\Delta = 0.3$ and $\beta = 0.5$ in all experiments. This prevents
+Gaussians from flashing in or out within a single frame.
+
+\subsection{Training Losses}
+\label{sec:method-loss}
+
+The total loss combines photometric, stereo-consistency, metric-depth,
+and perceptual terms:
+\begin{equation}
+\label{eq:loss}
+\mathcal{L} = \Lphoto + \lambda_\text{stereo} \Lstereo +
+\lambda_\text{depth} \Ldepth + \lambda_\text{lpips} \Llpips,
+\end{equation}
+where $\Lphoto = \|\hat{I}_L - I_L\|_1$ is the left-view photometric L1,
+$\Lstereo = \|\hat{I}_R - I_R\|_1$ is the right-view photometric L1
+(geometrically grounding the second view),
+$\Ldepth = \|\hat{\depth} - \depth\|_1 \cdot \mathbb{1}[\rho > \tau_\rho]$
+is the metric-depth L1 over confident pixels, and $\Llpips$ is the
+LPIPS~\cite{zhang2018lpips} perceptual loss activated after a warmup.
+Training is two-stage as in \StreamSplat: Stage~1 trains the static
+encoder, Stage~2 freezes it and trains the dynamic decoder. We reuse
+\StreamSplat's probabilistic sampling and adaptive opacity fusion
+unchanged.

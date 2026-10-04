@@ -1,0 +1,78 @@
+\section{Introduction}
+\label{sec:intro}
+
+Real-time dynamic 3D reconstruction from video streams underpins a growing
+list of applications --- robotic manipulation, autonomous driving, and
+augmented and virtual reality --- that share a common requirement: the
+reconstructed scene must carry \emph{absolute, metric scale}. A robot
+grasping an object, a vehicle planning a lane change, and an AR system
+anchoring a virtual asset all need to know where things are in meters, not
+in a normalized canonical space. Yet the most successful recent feed-forward
+dynamic 3D Gaussian Splatting (3DGS) methods~\cite{wu2026streamsplat}
+operate on \emph{uncalibrated monocular} video and explicitly factor out
+camera intrinsics and scale by working in an orthographic canonical space.
+This makes them fast and broadly applicable, but leaves the user with a
+scene whose metric scale is unspecified and must be recovered after the
+fact, typically by matching against a separate SLAM trajectory or a known
+object. The recovery step is fragile, introduces an extra source of error,
+and defeats the purpose of a one-shot feed-forward model.
+
+The physical source of metric scale is well understood: a calibrated stereo
+rig with baseline $b$ and focal length $f$ recovers absolute depth via the
+triangulation formula $Z = b f / d$, where $d$ is the disparity. Stereo
+matching is a mature field with strong generalizing
+backbones~\cite{xu2023igev}, and calibrated stereo cameras are ubiquitous
+on modern robots and vehicles. This raises a natural question: \emph{can we
+build a feed-forward dynamic 3DGS model that consumes a stereo video stream
+and directly produces a metric-scale dynamic Gaussian scene, while
+preserving the speed and online property of the monocular feed-forward
+pipeline?}
+
+We answer this affirmatively with \StereoSplat. Our framework reuses the
+transformer encoder, probabilistic Gaussian decoder, and bidirectional
+deformation field of \StreamSplat~\cite{wu2026streamsplat}, but makes three
+targeted replacements. \textbf{First}, the monocular Depth-Anything depth
+prior is replaced by a stereo-matching front end whose disparity output is
+converted to metric depth through $Z = b f / d$. \textbf{Second}, the
+fixed-camera orthographic rasterizer is replaced by a perspective
+rasterizer that consumes the true intrinsics and per-frame poses, so that
+the rendered images are geometrically consistent with the input cameras.
+\textbf{Third}, we introduce a \emph{metric back-projection head} that
+reinterprets the network's per-pixel position prediction as
+sub-pixel/metric-depth offsets and lifts each Gaussian into the metric
+world frame via the known intrinsics and pose. The dynamic decoder and
+polynomial motion model of \StreamSplat are reused unchanged, except that
+all quantities now live in meters.
+
+Beyond reconstruction quality, dynamic 3DGS methods exhibit a family of
+\emph{display} artifacts that limit their practical usefulness: temporal
+flickering in static regions~\cite{yun2025compensating}, popping from
+abrupt Gaussian appearance and disappearance, and high-frequency motion
+blur under polynomial motion models~\cite{zhang2026fastgs}. We address
+these with a streaming display module that wraps the rasterizer in a ring
+buffer and applies two lightweight, training-free operators: a
+motion-adaptive temporal exponential moving average (EMA) that strongly
+smooths static regions while leaving high-motion regions intact, and an
+opacity-stability filter that clamps per-frame opacity deltas to suppress
+popping. The display module exposes a single \texttt{step()} API and
+produces, alongside the rendered frame, diagnostic signals (motion energy,
+popping score) that we use in our experiments to measure temporal
+consistency.
+
+Our contributions are:
+\begin{itemize}[leftmargin=*,topsep=2pt,itemsep=1pt]
+    \item We propose \StereoSplat, the first feed-forward framework that
+    produces \emph{metric-scale} dynamic 3DGS from a stereo video stream,
+    by anchoring scale to the stereo baseline and focal length.
+    \item We introduce a metric back-projection head and a perspective
+    rasterization path that integrate seamlessly with the existing
+    \StreamSplat architecture, reusing its probabilistic and dynamic
+    components.
+    \item We identify and address the display artifacts of dynamic GS with
+    a streaming display module combining motion-adaptive EMA and
+    opacity-stability filtering.
+    \item We conduct a comprehensive experimental study on TartanAir,
+    DSEC, and KITTI Stereo, including a five-axis ablation, baseline
+    comparisons, and qualitative visualizations, demonstrating both metric
+    scale recovery and competitive photometric quality.
+\end{itemize}

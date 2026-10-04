@@ -1,0 +1,27 @@
+\begin{abstract}
+Feed-forward dynamic 3D Gaussian Splatting (3DGS) methods have recently
+made it possible to reconstruct dynamic scenes from uncalibrated monocular
+video in near real time. However, because they operate in a normalized
+canonical space with an orthographic camera, the resulting
+representations are \emph{scale-ambiguous}: a reconstructed scene cannot be
+used for metric reasoning in robotics, autonomous driving, or augmented
+reality without a separate, error-prone scale-recovery step. We present
+\StereoSplat, a fully feed-forward framework that reconstructs
+\emph{metric-scale} dynamic 3D Gaussian scenes from a calibrated stereo
+video stream. The key insight is that the stereo baseline and focal length
+provide a closed-form physical anchor for absolute scale:
+$Z = b f / d$. Building on the \StreamSplat architecture, we replace the
+monocular depth encoder with a stereo-matching front end that produces
+metric depth, swap the orthographic rasterizer for a perspective one that
+respects the true intrinsics and per-frame poses, and introduce a
+\emph{metric back-projection head} that lifts per-pixel Gaussian
+attributes into the metric world frame. To address the well-documented
+display artifacts of dynamic GS --- temporal flickering, popping, and
+high-frequency motion blur --- we further integrate a streaming display
+module with a motion-adaptive temporal smoother and an opacity-stability
+filter. Experiments on TartanAir, DSEC, and KITTI Stereo show that
+\StereoSplat recovers metric scale to within \TODO{X}\,m L1 error while
+matching or surpassing the photometric quality of monocular baselines, and
+that each component of the proposed pipeline contributes measurably to the
+final result.
+\end{abstract}
