@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.6.2)  28 SEP 2026 00:55
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.6.2)  4 OCT 2026 20:23
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -700,20 +700,14 @@ L3 programming layer <2024-05-08>
  ***********
 Package rerunfilecheck Info: File `main.out' has not changed.
 (rerunfilecheck)             Checksum: 7887201187CCCA6A418FEADF3BB949AD;3470.
-
-
-Package rerunfilecheck Warning: File `main.brf' has changed.
-(rerunfilecheck)                Rerun to get bibliographical references right.
-
-Package rerunfilecheck Info: Checksums for `main.brf':
-(rerunfilecheck)             Before: E79C4B5E30B5BB4E09E7D94236A2F62E;2765
-(rerunfilecheck)             After:  64EBAC23B7EB44A04BB3F06984D79C20;2818.
+Package rerunfilecheck Info: File `main.brf' has not changed.
+(rerunfilecheck)             Checksum: 64EBAC23B7EB44A04BB3F06984D79C20;2818.
  ) 
 Here is how much of TeX's memory you used:
- 18668 strings out of 473992
- 304509 string characters out of 5745049
+ 18667 strings out of 473992
+ 304481 string characters out of 5745049
  1969907 words of memory out of 5000000
- 40331 multiletter control sequences out of 15000+600000
+ 40330 multiletter control sequences out of 15000+600000
  616391 words of font info for 395 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  90i,15n,94p,2248b,695s stack positions out of 10000i,1000n,20000p,200000b,200000s
@@ -735,10 +729,10 @@ amsfonts/symbols/msbm10.pfb><c:/texlive/2024/texmf-dist/fonts/type1/urw/courier
 exmf-dist/fonts/type1/urw/times/utmb8a.pfb><c:/texlive/2024/texmf-dist/fonts/ty
 pe1/urw/times/utmr8a.pfb><c:/texlive/2024/texmf-dist/fonts/type1/urw/times/utmr
 i8a.pfb>
-Output written on main.pdf (9 pages, 295029 bytes).
+Output written on main.pdf (9 pages, 295068 bytes).
 PDF statistics:
- 459 PDF objects out of 1000 (max. 8388607)
- 403 compressed objects within 5 object streams
+ 460 PDF objects out of 1000 (max. 8388607)
+ 404 compressed objects within 5 object streams
  92 named destinations out of 1000 (max. 500000)
  70825 words of extra memory for PDF output out of 74296 (max. 10000000)
 
